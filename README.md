@@ -143,4 +143,113 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
+## Drop App:
+The drop app also has one activity and a simple drop helper view that is able to catch a draggable view. Below we will see the step-by-step drag app implementation.
+
+## Step 1:
+For drop functionality, we are going to use the "DropHelper" class which is not included in androidx core package. That's why we need to download a Jetpack package called Jetpack DragAndDrop using the Gradle build system. Please add the below code into the dependencies block in build.gradle file under the app module.
+
+```
+    implementation 'androidx.draganddrop:draganddrop:1.0.0'
+```
+
+## Step 2:
+The activity_main.xml layout of the Drop app kind of similar to the Drag app, it has one TextView which contains text direction for the user, an ImageView for dropped image, and an ImageButton to clean ImageView. Layout codes are below,
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="20dp"
+    tools:context=".MainActivity">
+
+
+    <TextView
+        android:id="@+id/text_drag_item"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="Drop the image in the box"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/guideline_center"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.1" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/image_drop_target"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_target_normal"
+        android:gravity="center_horizontal|center_vertical"
+        android:padding="20dp"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guideline_center" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/button_clear"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_clear"
+        app:layout_constraintEnd_toEndOf="@id/image_drop_target"
+        app:layout_constraintTop_toTopOf="@id/image_drop_target" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+## Step 3:
+The new Jetpack DragAndDrop library simplifies drop functionality with the DropHelper class, which makes the code easily understandable and smaller at the same time. The DropHelper class has a static method definition called configureView() that performs the core of the drop functionality. It takes five parameters chronologically, Activity which is used for URI permission, dropTraget is a view that accepts drop data, mimeType defines what type of data the view will accept,
+DropHelper.Options for configuring drop targets view when the drag operation starts, and a listener called OnReceiveContentListener that is invoked when dropped data is available. When the drop event occurs the OnReceiveContentListener passes the payload parameter from which the URI is obtained. Setting the received URI to ImageView will give us the desired result we are looking for.
+
+```
+class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+
+        DropHelper.configureView(this,
+            findViewById(R.id.image_drop_target),
+            arrayOf("image/*"),
+            DropHelper.Options.Builder()
+                .setHighlightColor(getColor(R.color.purple_500))
+                .setHighlightCornerRadiusPx(6).build()
+        ) { view, payload ->
+            resetDropTarget()
+            findViewById<AppCompatImageView>(R.id.image_drop_target).setImageURI(payload.clip.getItemAt(0).uri)
+            payload
+        }
+
+        findViewById<AppCompatImageButton>(R.id.button_clear).setOnClickListener {
+            resetDropTarget()
+        }
+
+    }
+
+    private fun resetDropTarget() {
+        findViewById<AppCompatImageView>(R.id.image_drop_target).setImageDrawable(null)
+    }
+
+}
+```
+
+
+
 
